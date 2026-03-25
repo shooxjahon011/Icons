@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring | {{ boss.guruh.nomi }}</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --warning: #f6e05e;
+            --success: #68d391;
+            --danger: #f87171;
+            --glass-bg: rgba(10, 15, 30, 0.85);
+            --border: rgba(0, 242, 255, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.15) blur(1px);
+        }
+
+        .video-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent, #000);
+            z-index: -1;
+        }
+
+        .container-fluid { width: 100%; padding: 20px; position: relative; z-index: 1; }
+
+        /* Nav Bar */
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+            color: #fff; padding: 10px 20px; border-radius: 12px;
+            text-decoration: none; font-size: 13px; font-family: 'Orbitron';
+            backdrop-filter: blur(10px); transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-back:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
+
+        .guruh-badge {
+            background: rgba(0, 242, 255, 0.1); color: var(--primary);
+            padding: 8px 20px; border-radius: 30px; font-weight: 700; font-size: 12px;
+            border: 1px solid var(--border); font-family: 'Orbitron'; letter-spacing: 1px;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .panel-title { font-family: 'Orbitron'; font-size: 16px; color: #fff; letter-spacing: 1px; }
+        #live-clock { font-family: 'JetBrains Mono'; color: var(--primary); font-size: 20px; text-shadow: 0 0 10px var(--primary); }
+
+        /* Table Design */
+        .table-responsive {
+            overflow-x: auto; border-radius: 15px;
+            scrollbar-width: thin; scrollbar-color: var(--primary) transparent;
+        }
+
+        .train-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1400px; }
+
+        .train-table th {
+            padding: 15px 10px; background: rgba(0, 242, 255, 0.05); color: rgba(255,255,255,0.6);
+            text-transform: uppercase; font-size: 10px; font-family: 'Orbitron';
+            border-bottom: 1px solid var(--border); text-align: center;
+        }
+
+        .train-table td {
+            padding: 14px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-family: 'JetBrains Mono', monospace; text-align: center;
+        }
+
+        .train-table tr:hover td { background: rgba(0, 242, 255, 0.08); cursor: pointer; color: #fff; }
+
+        /* Cell Styling */
+        .col-path { color: var(--warning); font-weight: bold; background: rgba(246, 224, 94, 0.05); }
+        .col-train { color: var(--primary); font-weight: bold; font-size: 14px; }
+        .col-weight { color: var(--success); }
+
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; font-family: 'Orbitron'; }
+        .status-waiting { background: rgba(246, 224, 94, 0.1); color: var(--warning); border: 1px solid var(--warning); }
+        .status-done { background: rgba(104, 211, 145, 0.1); color: var(--success); border: 1px solid var(--success); }
+
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; inset: 0; z-index: 999;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px);
+        }
+        .modal-content {
+            background: #0a0f1e; margin: 5% auto; padding: 30px;
+            border: 1px solid var(--primary); width: 80%; max-width: 800px; border-radius: 25px;
+            color: white; box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+            animation: modalIn 0.3s ease-out;
+        }
+        @keyframes modalIn { from { transform: translateY(-30px); opacity: 0; } }
+
+        .wagon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 20px; max-height: 400px; overflow-y: auto; padding: 10px; }
+        .wagon-card {
+            background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px;
+            text-align: center; border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+        }
+        .wagon-card:hover { border-color: var(--primary); background: rgba(0, 242, 255, 0.05); }
+    </style>
+</head>
+<body>
+
+<video autoplay muted loop playsinline id="bg-video">
+    <source src="{{ video_url }}" type="video/mp4">
+</video>
+<div class="video-overlay"></div>
+
+<div class="container-fluid">
+    <div class="nav-bar">
+        <a href='/bosspage/' class="btn-back"><i class="fas fa-chevron-left"></i> PANELGA QAYTISH</a>
+        <div class="guruh-info">
+            <span class="guruh-badge"><i class="fas fa-satellite-dish"></i> {{ boss.guruh.nomi|upper }} MONITORING TERMINALI</span>
+        </div>
+    </div>
+
+    <div class="glass-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <i class="fas fa-microchip" style="color: var(--primary)"></i> ASU SARYAGASH SYSTEM_v2.0
+            </div>
+            <div id="live-clock">00:00:00</div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="train-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Yo'l</th>
+                        <th>Operatsiya</th>
+                        <th>Poyezd №</th>
+                        <th>Form.</th>
+                        <th>Sostav</th>
+                        <th>Naznach.</th>
+                        <th>NLP</th>
+                        <th>Sana</th>
+                        <th>Vaqt</th>
+                        <th>Tipi</th>
+                        <th>Vag. soni</th>
+                        <th>UDL</th>
+                        <th>Vazni</th>
+                        <th>OXR</th>
+                        <th>LOK</th>
+                        <th>Holati</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for train in trains %}
+                    <tr onclick="showWagons('{{ train.train_number }}', '{{ train.vagon_count }}', [{% for v in train.wagons.all %}'{{ v.vagon_number }}',{% endfor %}])">
+                        <td>{{ forloop.counter }}</td>
+                        <td class="col-path">{{ train.track_number|default:"--" }}</td>
+                        <td style="color: #ff9d00;">{{ train.operation|default:"--" }}</td>
+                        <td class="col-train">{{ train.train_number }}</td>
+                        <td>{{ train.form_code|default:"0000" }}</td>
+                        <td>{{ train.sostav_code|default:"000" }}</td>
+                        <td>{{ train.nazn_code|default:"0000" }}</td>
+                        <td>{{ train.nlp_code|default:"ЗАВ" }}</td>
+                        <td>{{ train.received_at|date:"d.m.Y" }}</td>
+                        <td>{{ train.received_at|date:"H:i" }}</td>
+                        <td>{{ train.type_code|default:"ПСС" }}</td>
+                        <td style="font-weight: bold; color: #fff;">{{ train.vagon_count }}</td>
+                        <td>{{ train.udl_code|default:"0" }}</td>
+                        <td class="col-weight">{{ train.total_weight }} t.</td>
+                        <td>{{ train.oxr_code|default:"1" }}</td>
+                        <td>{{ train.lok_code|default:"1" }}</td>
+                        <td>
+                            {% if train.is_processed %}
+                            <span class="status-badge status-done">TAYYOR</span>
+                            {% else %}
+                            <span class="status-badge status-waiting">JARAYONDA</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="17" style="padding: 100px; opacity: 0.5; font-size: 14px; font-family: 'Orbitron';">MA'LUMOTLAR MAVJUD EMAS</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="wagonModal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+            <h3 id="modalTitle" style="color: var(--primary); font-family: 'Orbitron'; font-size: 16px;"></h3>
+            <span onclick="closeModal()" style="cursor: pointer; font-size: 24px; color: var(--danger);"><i class="fas fa-times-circle"></i></span>
+        </div>
+        <div id="wagonContainer" class="wagon-grid"></div>
+    </div>
+</div>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('live-clock').innerText = now.toLocaleTimeString('uz-UZ', { hour12: false });
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function showWagons(trainNum, count, wagons) {
+        document.getElementById('modalTitle').innerText = "POYEZD №" + trainNum + " | TARKIB: " + count + " TA VAGON";
+        const container = document.getElementById('wagonContainer');
+        container.innerHTML = '';
+
+        if(wagons.length === 0) {
+            container.innerHTML = "<div style='grid-column: 1/-1; text-align: center; padding: 40px; opacity: 0.5;'>Vagonlar ma'lumotlari kiritilmagan</div>";
+        } else {
+            wagons.forEach((num, index) => {
+                container.innerHTML += `
+                    <div class="wagon-card">
+                        <div style="font-size: 9px; color: var(--primary); margin-bottom: 5px;">№ ${index + 1}</div>
+                        <b style="font-size: 16px; color: #fff;">${num}</b>
+                    </div>`;
+            });
+        }
+        document.getElementById('wagonModal').style.display = 'block';
+    }
+
+    function closeModal() { document.getElementById('wagonModal').style.display = 'none'; }
+    window.onclick = function(e) { if(e.target.className === 'modal') closeModal(); }
+</script>
+</body>
+</html>

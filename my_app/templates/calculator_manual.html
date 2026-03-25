@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Manual Kalkulyator | TemirYo'l</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --accent: #ff9d00;
+            --glass: rgba(0, 0, 0, 0.75);
+            --border: rgba(255, 157, 0, 0.25);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #000; color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.25) contrast(1.1);
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.85));
+            z-index: -1;
+        }
+
+        /* PWA Safe Area for iPhone */
+        @media screen and (display-mode: standalone) {
+            .container { padding-top: env(safe-area-inset-top, 40px) !important; }
+        }
+
+        .container {
+            max-width: 480px; margin: 20px auto; padding: 35px 25px;
+            background: var(--glass); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 35px; border: 1px solid var(--border);
+            position: relative; z-index: 1;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            animation: fadeInScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        h2 {
+            text-align: center; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 3px;
+            margin-bottom: 30px; font-weight: 800; font-size: 20px;
+            text-shadow: 0 0 15px rgba(255, 157, 0, 0.4);
+        }
+
+        .form-group { margin-bottom: 15px; }
+
+        label {
+            display: block; font-size: 10px; color: var(--accent);
+            margin-bottom: 6px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            padding-left: 5px;
+        }
+
+        input {
+            width: 100%; padding: 14px 18px; border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.98);
+            color: #000; font-size: 16px; font-weight: 700;
+            outline: none; box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(255, 157, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .btn-calc {
+            width: 100%; padding: 18px; border: none; border-radius: 18px;
+            background: linear-gradient(135deg, var(--accent), #ff5e00);
+            color: black; font-weight: 900; font-size: 16px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.4s; margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(255, 157, 0, 0.2);
+        }
+
+        .btn-calc:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 157, 0, 0.4); }
+        .btn-calc:active { transform: scale(0.96); }
+
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            text-decoration: none; color: var(--accent);
+            font-size: 13px; font-weight: 800; margin-bottom: 25px;
+            transition: 0.3s; text-transform: uppercase;
+        }
+        .back-btn:hover { text-shadow: 0 0 10px var(--accent); }
+
+        /* Natija oynasi */
+        .result-box {
+            background: rgba(255, 157, 0, 0.12); border: 1px solid var(--accent);
+            padding: 25px; border-radius: 25px; margin-top: 25px;
+            text-align: center; backdrop-filter: blur(10px);
+            animation: pulseIn 0.5s ease-out;
+        }
+
+        @keyframes pulseIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-label { color: #ccc; font-size: 11px; text-transform: uppercase; font-weight: 700; }
+        .result-value {
+            color: var(--accent); font-size: 28px; font-weight: 900;
+            display: block; margin-top: 5px;
+            text-shadow: 0 0 20px rgba(255, 157, 0, 0.5);
+        }
+
+        @media (max-width: 480px) {
+            .container { margin: 10px; padding: 25px 15px; border-radius: 25px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+    <video loop playsinline id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <a href="/okladmenu/" class="back-btn"><i class="fas fa-chevron-left"></i> Orqaga qaytish</a>
+
+        <h2><i class="fas fa-edit"></i> Manual Hisob</h2>
+
+        <form method="GET">
+            <div class="form-group">
+                <label>Oklad (tarif stavka):</label>
+                <input type="number" name="salary" value="{{ salary }}" required placeholder="4 000 000">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Norma soat:</label>
+                    <input type="number" name="norma_soat" value="{{ norma_soat }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Ishlangan soat:</label>
+                    <input type="number" name="ishlangan_soat" value="{{ ishlangan_soat }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Mukofot (bonus %):</label>
+                <input type="number" name="bonus_percent" value="{{ bonus_percent }}" placeholder="20%" required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Tungi (1.5x):</label>
+                    <input type="number" name="tungi_soat" value="{{ tungi_soat }}">
+                </div>
+                <div class="form-group">
+                    <label>Bayram (2.0x):</label>
+                    <input type="number" name="bayram_soati" value="{{ bayram_soati }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-calc">HISOB-KITOB <i class="fas fa-coins"></i></button>
+        </form>
+
+        {% if error %}
+            <div style="color:#ff4b4b; text-align:center; margin-top:20px; font-weight:700; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border: 1px solid #ff4b4b;">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+
+        {% if netto %}
+            <div class="result-box">
+                <span class="result-label">Hisoblangan sof oylik:</span>
+                <span class="result-value">
+                    {{ netto|floatformat:0 }} so'm
+                </span>
+                <div style="margin-top: 10px; font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase;">
+                    Soliqlar chegirilgan holatda
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        // Video va Audio boshqaruvi
+        const video = document.getElementById('bg-video');
+        window.addEventListener('load', () => {
+            video.muted = true;
+            video.play().catch(() => {});
+        });
+
+        // Click orqali ovozni ochish
+        document.body.addEventListener('click', () => {
+            if (video.muted) {
+                video.muted = false;
+                video.play();
+            }
+        }, { once: true });
+
+        // Tugma bosilganda vibratsiya
+        document.querySelector('.btn-calc').addEventListener('click', () => {
+            if ('vibrate' in navigator) navigator.vibrate(30);
+        });
+    </script>
+</body>
+</html>

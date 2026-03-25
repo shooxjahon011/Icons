@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+
+    <title>Kirish | TemirYo'l</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --yt-red: #ff0000;
+            --neon-cyan: #00f2ff;
+            --glass: rgba(0, 0, 0, 0.75);
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            margin: 0; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            background-color: #000; overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Fon Video */
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%); object-fit: cover;
+            pointer-events: none; filter: brightness(0.4) contrast(1.1);
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.8));
+            z-index: -1;
+        }
+
+        /* Login Kartasi */
+        .login-card {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 45px 35px;
+            border-radius: 40px;
+            width: 92%;
+            max-width: 400px;
+            border: 1px solid rgba(0, 242, 255, 0.25);
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: relative;
+            z-index: 1;
+            animation: cardEntrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: scale(0.8) translateY(40px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .brand-name {
+            font-size: 32px; font-weight: 900; color: #fff;
+            letter-spacing: 4px; text-transform: uppercase;
+            margin-bottom: 35px;
+            text-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        input {
+            width: 100%; padding: 16px 20px; border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.92);
+            color: #000; margin-bottom: 18px;
+            outline: none; font-size: 16px; font-weight: 700;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+            border-color: var(--neon-cyan);
+        }
+
+        .login-btn {
+            width: 100%; padding: 18px; border-radius: 18px; border: none;
+            background: linear-gradient(135deg, var(--neon-cyan), #0072ff);
+            color: white; font-weight: 900; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.4s; margin-top: 10px;
+            box-shadow: 0 10px 25px rgba(0, 242, 255, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 242, 255, 0.5);
+        }
+
+        .error-box {
+            background: rgba(255, 56, 56, 0.15); color: #ff3838;
+            padding: 15px; border-radius: 15px; margin-bottom: 25px;
+            font-size: 13px; border: 1px solid rgba(255, 56, 56, 0.3);
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; font-weight: 800;
+        }
+
+        /* YouTube Modal */
+        #yt-modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.96);
+            z-index: 9999; display: flex;
+            align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: #111; padding: 45px 30px;
+            border-radius: 45px; border: 2px solid var(--yt-red);
+            text-align: center; width: 88%; max-width: 340px;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
+        }
+
+        .yt-icon {
+            font-size: 80px; color: var(--yt-red);
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.5));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .sub-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--yt-red); color: white; padding: 18px;
+            border-radius: 22px; text-decoration: none;
+            font-weight: 900; margin: 30px 0 15px;
+            transition: 0.3s; letter-spacing: 1px;
+        }
+
+        .sub-btn:hover { transform: scale(1.03); filter: brightness(1.1); }
+
+        .check-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa; width: 100%; padding: 15px; border-radius: 22px;
+            cursor: pointer; font-weight: 800; transition: 0.3s;
+        }
+
+        .check-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        #error-msg { color: #ff3838; font-size: 11px; margin-top: 15px; font-weight: 800; }
+
+        .signup-link {
+            display: inline-block; margin-top: 30px;
+            color: var(--neon-cyan); text-decoration: none;
+            font-size: 13px; font-weight: 800;
+            letter-spacing: 1px; transition: 0.3s;
+        }
+        .signup-link:hover { text-shadow: 0 0 10px var(--neon-cyan); }
+    </style>
+</head>
+<body>
+    <div id="yt-modal">
+        <div class="modal-content">
+            <div class="yt-icon"><i class="fab fa-youtube"></i></div>
+            <h2 style="margin:0; color:white; text-transform: uppercase; letter-spacing: 2px;">Diqqat!</h2>
+            <p style="color:#aaa; font-size:14px; margin-top:15px; line-height: 1.5;">Tizimdan foydalanish uchun rasmiy YouTube kanalimizga obuna bo'ling.</p>
+
+            <a href="https://www.youtube.com/@gamerjaan-x6" target="_blank" class="sub-btn" onclick="didClickSub()">
+                <i class="fas fa-bell"></i> OBUNA BO'LISH
+            </a>
+
+            <button class="check-btn" onclick="verifySub()">TEKSHIRISH</button>
+            <p id="error-msg" style="display:none;">AVVAL OBUNA TUGMASINI BOSING!</p>
+        </div>
+    </div>
+
+    <video loop playsinline muted id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="login-card">
+        <div class="brand-name">Temir Yo'l</div>
+
+        {% if error_message %}
+        <div class="error-box">
+            <i class="fas fa-exclamation-triangle"></i> {{ error_message }}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="u_name" placeholder="Foydalanuvchi nomi" required autocomplete="username">
+            <input type="password" name="p_val" placeholder="Parol" required autocomplete="current-password">
+            <button type="submit" class="login-btn">Tizimga kirish <i class="fas fa-sign-in-alt"></i></button>
+        </form>
+
+        <a href="/signup/" class="signup-link">YANGI HISOB OCHISH</a>
+    </div>
+
+    <script>
+        let clickedSub = false;
+        const video = document.getElementById('bg-video');
+
+        function didClickSub() {
+            clickedSub = true;
+        }
+
+        function verifySub() {
+            if(clickedSub) {
+                if ('vibrate' in navigator) navigator.vibrate(20);
+                document.getElementById('yt-modal').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('yt-modal').style.display = 'none';
+                }, 300);
+                localStorage.setItem('subscribed', 'true');
+                video.muted = true; // Avval muted holda boshlaymiz
+                video.play();
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+                if ('vibrate' in navigator) navigator.vibrate([50, 50, 50]);
+            }
+        }
+
+        window.onload = () => {
+            if(localStorage.getItem('subscribed') === 'true') {
+                document.getElementById('yt-modal').style.display = 'none';
+                video.play();
+            }
+        };
+
+        // Ovozni faollashtirish
+        document.body.addEventListener('click', () => {
+            if (video.muted && localStorage.getItem('subscribed') === 'true') {
+                video.muted = false;
+                video.play();
+            }
+        }, { once: false });
+    </script>
+</body>
+</html>

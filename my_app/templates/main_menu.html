@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#050505">
+
+    <title>Bosh Menyu | TemirYo'l</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --green: #00ff88;
+            --danger: #ff4747;
+            --glass: rgba(15, 15, 15, 0.75);
+            --bg-dark: #050505;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg-dark);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 120px;
+            overflow-x: hidden;
+        }
+
+        /* Video Fon */
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.2) contrast(1.2);
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, transparent, rgba(0,0,0,0.85));
+            z-index: -1;
+        }
+
+        /* Header */
+        .header {
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .brand {
+            font-family: 'Orbitron';
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+        }
+
+        .user-profile { display: flex; align-items: center; gap: 12px; }
+        .user-profile span { font-size: 14px; font-weight: 700; color: #eee; }
+        .user-profile img {
+            width: 38px; height: 38px; border-radius: 12px;
+            border: 1px solid var(--accent); object-fit: cover;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+
+        .main-container { padding: 20px; max-width: 500px; margin: 0 auto; }
+
+        /* Aktiv topshiriq kartasi */
+        .active-work-card {
+            background: linear-gradient(135deg, rgba(0,242,255,0.15), rgba(0,0,0,0.4));
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--accent);
+            border-radius: 28px;
+            padding: 22px;
+            margin-bottom: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border-left: 6px solid var(--accent);
+            animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+
+        .train-info p { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        .train-info h3 { font-family: 'Orbitron'; font-size: 26px; font-weight: 700; }
+
+        .btn-vagon {
+            background: var(--accent);
+            color: #000;
+            padding: 12px 18px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-family: 'Orbitron';
+            font-size: 11px; font-weight: 900;
+            display: flex; align-items: center; gap: 8px;
+            transition: 0.3s;
+        }
+        .btn-vagon:active { transform: scale(0.95); }
+
+        /* Power Tugmasi Bloki */
+        .status-box {
+            background: var(--glass);
+            border-radius: 35px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(15px);
+        }
+
+        .btn-main {
+            width: 100%; padding: 20px; border-radius: 22px; border: none;
+            font-family: 'Orbitron'; font-weight: 800; font-size: 15px;
+            cursor: pointer; transition: 0.4s;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            letter-spacing: 1.5px;
+        }
+
+        .btn-idle {
+            background: linear-gradient(135deg, var(--green), #00ba63);
+            color: #000;
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-working {
+            background: rgba(255, 71, 71, 0.1);
+            color: var(--danger);
+            border: 1.5px solid var(--danger);
+            box-shadow: inset 0 0 15px rgba(255, 71, 71, 0.1);
+        }
+
+        /* Menu Grid */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+        .menu-item {
+            background: var(--glass);
+            border-radius: 28px;
+            padding: 30px 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            border: 1px solid var(--glass-border);
+            transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .menu-item i {
+            font-size: 32px; color: var(--accent);
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.4));
+            transition: 0.3s;
+        }
+
+        .menu-item span { font-weight: 700; font-size: 16px; letter-spacing: 1px; }
+
+        .menu-item:active { transform: scale(0.92); background: rgba(255,255,255,0.05); }
+
+        /* Navigatsiya */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(25px);
+            display: flex; justify-content: space-around;
+            padding: 18px; border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            z-index: 1000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .nav-link {
+            color: #555; text-align: center; text-decoration: none;
+            transition: 0.3s; flex: 1;
+        }
+        .nav-link.active { color: var(--accent); }
+        .nav-link i { font-size: 20px; margin-bottom: 4px; }
+        .nav-link span { font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+        /* SweetAlert Cyber Theme */
+        .swal2-popup {
+            background: #0a0a0a !important;
+            border: 1px solid var(--accent) !important;
+            border-radius: 35px !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay loop playsinline muted id="bg-video">
+        <source src="{% static 'uzb.mp4' %}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="header">
+        <div class="brand">TEMIR<span style="color:#fff">YO'L</span></div>
+        <div class="user-profile">
+            <span>{{ display_name }}</span>
+            <img src="{{ avatar_url|default:'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' }}" alt="Avatar">
+        </div>
+    </div>
+
+    <div class="main-container">
+
+        {% if tasks %}
+            {% with task=tasks.0 %}
+            <script>
+                window.addEventListener('DOMContentLoaded', () => {
+                    Swal.fire({
+                        title: 'YANGI TOPSHIRIQ!',
+                        html: 'Sizga yangi poyezd biriktirildi: <br><b style="color: #00f2ff; font-size: 32px; font-family: Orbitron; display: block; margin: 15px 0;">№ {{ task.train_number }}</b>',
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonColor: '#00ff88',
+                        cancelButtonColor: '#ff4747',
+                        confirmButtonText: 'QABUL QILISH',
+                        cancelButtonText: 'RAD ETISH',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "/task-respond/{{ task.id }}/accept/";
+                        } else if (result.dismiss === Swal.DismissReason.cancel) {
+                            window.location.href = "/task-respond/{{ task.id }}/reject/";
+                        }
+                    });
+                });
+            </script>
+            {% endwith %}
+        {% endif %}
+
+        {% if active_task %}
+        <div class="active-work-card">
+            <div class="train-info">
+                <p>Hozir ishda:</p>
+                <h3>№ {{ active_task.train_number }}</h3>
+            </div>
+            <a href="javascript:void(0)" onclick="animateMenu('/Poezdlar/', 'Vagonlar yuklanmoqda...')" class="btn-vagon">
+                <i class="fas fa-train"></i> VAGONLAR
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="status-box">
+            <button onclick="handleWorkToggle()" class="btn-main {{ btn_class }}">
+                <i class="fas fa-power-off"></i> <span>{{ btn_text }}</span>
+            </button>
+        </div>
+
+        <div class="menu-grid">
+            <a href="javascript:void(0)" onclick="animateMenu('/okladmenu/', 'Maosh hisoblanmoqda...')" class="menu-item">
+                <i class="fas fa-wallet"></i><span>Maosh</span>
+            </a>
+            <a href="javascript:void(0)" onclick="animateMenu('/tatil/', 'Taqvim ochilmoqda...')" class="menu-item">
+                <i class="fas fa-calendar-check"></i><span>Ta'til</span>
+            </a>
+            <a href="javascript:void(0)" onclick="animateMenu('/hisobot/', 'Arxiv tekshirilmoqda...')" class="menu-item">
+                <i class="fas fa-file-invoice-dollar"></i><span>Hisobot</span>
+            </a>
+            <a href="javascript:void(0)" onclick="animateMenu('/Baxtsizhodisalar/', 'Xavfsizlik protokoli...')" class="menu-item">
+                <i class="fas fa-shield-virus"></i><span>Xavfsizlik</span>
+            </a>
+            <a href="javascript:void(0)" onclick="animateMenu('/profile/', 'Profil yuklanmoqda...')" class="menu-item">
+                <i class="fas fa-id-card"></i><span>Profil</span>
+            </a>
+            <a href="https://t.me/STAREVOID" target="_blank" class="menu-item">
+                <i class="fas fa-headset"></i><span>Yordam</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <a href="/second/" class="nav-link active">
+            <i class="fas fa-th-large"></i><br><span>Asosiy</span>
+        </a>
+        <a href="/profile/" class="nav-link">
+            <i class="fas fa-user-astronaut"></i><br><span>Profil</span>
+        </a>
+        <a href="javascript:void(0)" onclick="confirmLogout()" class="nav-link" style="color: var(--danger);">
+            <i class="fas fa-power-off"></i><br><span>Chiqish</span>
+        </a>
+    </div>
+
+    <script>
+        // 1. Ishni boshlash/tugatish (Haptic Feedback bilan)
+        async function handleWorkToggle() {
+            if ('vibrate' in navigator) navigator.vibrate(30);
+
+            const isWorking = "{{ is_working }}" === "True";
+            const action = isWorking ? 'stop' : 'start';
+
+            Swal.fire({
+                title: isWorking ? 'Ishni tugatish...' : 'Ishni boshlash...',
+                didOpen: () => { Swal.showLoading(); },
+                allowOutsideClick: false
+            });
+
+            try {
+                const res = await fetch('/toggle-work/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: new URLSearchParams({ 'action': action })
+                });
+                if(res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: isWorking ? 'Ish yakunlandi!' : 'Xush kelibsiz!',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => { location.reload(); });
+                }
+            } catch (err) { Swal.fire('Xato!', 'Aloqa uzildi.', 'error'); }
+        }
+
+        // 2. Silliq menyu o'tishlari
+        function animateMenu(url, loadingText) {
+            if ('vibrate' in navigator) navigator.vibrate(15);
+            Swal.fire({
+                title: loadingText,
+                timer: 700,
+                timerProgressBar: true,
+                didOpen: () => { Swal.showLoading(); },
+                willClose: () => { window.location.href = url; }
+            });
+        }
+
+        // 3. Logout tasdiqlash
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Chiqishni xohlaysizmi?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: var(--accent),
+                cancelButtonColor: var(--danger),
+                confirmButtonText: 'HA',
+                cancelButtonText: 'YO\'Q'
+            }).then((result) => { if (result.isConfirmed) window.location.href = '/logout/'; });
+        }
+
+        // 4. Avtomatik polling (Yangilanishlarni tekshirish)
+        setInterval(async () => {
+            try {
+                const res = await fetch(window.location.href);
+                const text = await res.text();
+                if (text.includes('YANGI TOPSHIRIQ!') && !Swal.isVisible()) {
+                    location.reload();
+                }
+            } catch (e) {}
+        }, 10000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#050505">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>{{ title }} | TemirYo'l</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* Serverdan kelgan rang yoki standart ko'k neon */
+            --main-color: {{ color|default:"#00f2ff" }};
+            --glass: rgba(15, 15, 15, 0.65);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: #000;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; color: #fff;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Dinamik Video Fon */
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.25) contrast(1.1);
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.85));
+            z-index: -1;
+        }
+
+        /* Asosiy Konteyner (Glassmorphism) */
+        .box {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 35px 25px;
+            border-radius: 35px;
+            width: 92%;
+            max-width: 420px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 55px rgba(0,0,0,0.7);
+            animation: boxFadeUp 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 20px 0;
+        }
+
+        @keyframes boxFadeUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h2 {
+            color: var(--main-color);
+            text-align: center;
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 10px 0 25px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            font-weight: 800;
+        }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: rgba(255,255,255,0.5); text-decoration: none;
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            transition: 0.3s;
+        }
+        .back-link:hover { color: var(--main-color); }
+
+        /* Input Form Guruhi */
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        label {
+            font-size: 10px; color: var(--main-color);
+            text-transform: uppercase; margin-left: 8px;
+            font-weight: 900; display: block; margin-top: 12px;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 100%; padding: 14px; margin: 6px 0;
+            border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.96); color: #000;
+            box-sizing: border-box; font-weight: 700; font-size: 16px;
+            outline: none; transition: 0.3s;
+        }
+        input:focus {
+            border-color: var(--main-color);
+            box-shadow: 0 0 15px var(--main-color);
+            transform: translateY(-2px);
+        }
+
+        button {
+            width: 100%; padding: 18px; border-radius: 18px; border: none;
+            background: linear-gradient(135deg, var(--main-color), #ffffff33);
+            background-color: var(--main-color); /* Fallback */
+            color: #000; font-weight: 900; font-size: 16px;
+            cursor: pointer; margin-top: 25px; transition: 0.4s;
+            text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px var(--main-color);
+            filter: brightness(1.1);
+        }
+        button:active { transform: scale(0.96); }
+
+        /* Natija oynasi */
+        .res-box {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px; border-radius: 20px;
+            text-align: center; margin-bottom: 25px;
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--main-color);
+            animation: pulseIn 0.5s ease-out;
+        }
+
+        @keyframes pulseIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .netto-val {
+            font-size: 28px; color: var(--main-color); font-weight: 900;
+            display: block; margin-top: 5px;
+            text-shadow: 0 0 20px var(--main-color);
+        }
+
+        /* Safe area for iPhone standalone mode */
+        @media screen and (display-mode: standalone) {
+            .box { margin-top: env(safe-area-inset-top, 40px); }
+        }
+
+        @media (max-width: 400px) {
+            .grid-inputs { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+    <video autoplay loop muted playsinline id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="box">
+        <a href="/second/" class="back-link"><i class="fas fa-chevron-left"></i> Orqaga</a>
+        <h2>{{ title }}</h2>
+
+        {% if error %}
+            <div style="color: #ff3838; text-align: center; font-size: 13px; font-weight: 800; background: rgba(255,56,56,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ff3838;">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+
+        {% if netto %}
+            <div class="res-box">
+                <span style="font-size: 11px; opacity: 0.6; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Kutilayotgan sof oylik:</span>
+                <span class="netto-val">{{ netto|floatformat:0 }} so'm</span>
+            </div>
+        {% endif %}
+
+        <form method="GET">
+            <label>Oklad (stavka):</label>
+            <input type="number" name="salary" value="{{ salary }}" required placeholder="4 000 000">
+
+            <div class="grid-inputs">
+                <div>
+                    <label>Norma soat:</label>
+                    <input type="number" name="norma_soat" value="{{ norma_soat }}" required>
+                </div>
+                <div>
+                    <label>Ishlangan soat:</label>
+                    <input type="number" name="ishlangan_soat" value="{{ ishlangan_soat }}" required>
+                </div>
+            </div>
+
+            {% if is_manual %}
+                <label>Mukofot foizi (%):</label>
+                <input type="number" name="bonus_percent" value="{{ bonus_percent }}" required placeholder="20">
+            {% endif %}
+
+            <div class="grid-inputs">
+                <div>
+                    <label>Tungi soat:</label>
+                    <input type="number" name="tungi_soat" value="{{ tungi_soat|default:0 }}">
+                </div>
+                <div>
+                    <label>Bayram soati:</label>
+                    <input type="number" name="bayram_soati" value="{{ bayram_soati|default:0 }}">
+                </div>
+            </div>
+
+            <button type="submit">HISOBLASH <i class="fas fa-coins"></i></button>
+        </form>
+    </div>
+
+    <script>
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        // Haptic feedback (tebranish) tugma uchun
+        document.querySelector('button').addEventListener('click', () => {
+            if ('vibrate' in navigator) navigator.vibrate(25);
+        });
+
+        // iOS uchun video autoplay muammosini tuzatish
+        const video = document.getElementById('bg-video');
+        video.play().catch(() => {
+            // Agar brauzer bloklasa, ovozsiz holda majburan qo'yish
+            video.muted = true;
+            video.play();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#050505">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>To'lov Hisoblagich | TemirYo'l</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --neon-green: #00ff88;
+            --glass: rgba(0, 0, 0, 0.7);
+            --border: rgba(0, 242, 255, 0.2);
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #000; color: white; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%); object-fit: cover;
+            filter: brightness(0.3) contrast(1.1);
+        }
+
+        .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: -1; }
+
+        .container {
+            position: relative; z-index: 2; width: 92%; max-width: 440px;
+            background: var(--glass); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 30px 25px; border-radius: 35px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            max-height: 92vh; overflow-y: auto;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center; margin-bottom: 30px; color: var(--neon-cyan);
+            text-transform: uppercase; letter-spacing: 2px; font-weight: 800;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        label {
+            font-size: 10px; text-transform: uppercase; margin-bottom: 8px;
+            display: block; color: var(--neon-cyan); font-weight: 900;
+            letter-spacing: 1px; padding-left: 5px;
+        }
+
+        input {
+            width: 100%; padding: 14px 18px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.95); color: #000;
+            font-size: 16px; font-weight: 700; outline: none; box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 242, 255, 0.3); }
+
+        .grid-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .btn-group { display: flex; gap: 12px; margin-top: 30px; }
+
+        .btn-calculate {
+            flex: 2; padding: 16px; border: none; border-radius: 15px;
+            background: linear-gradient(135deg, var(--neon-cyan), #0072ff);
+            color: white; font-weight: 900; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
+        }
+
+        .btn-back {
+            flex: 1; padding: 16px; border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 15px; color: white; text-decoration: none;
+            text-align: center; font-size: 12px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .btn-calculate:active { transform: scale(0.95); }
+
+        /* Natija kartasi */
+        .result-box {
+            margin-top: 30px; padding: 25px; border-radius: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff; border: 1px solid var(--neon-green);
+            animation: fadeIn 0.5s ease-in;
+            border-left: 5px solid var(--neon-green);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .res-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .res-item b { color: var(--neon-green); }
+
+        .total-pay {
+            text-align: center; background: rgba(0, 255, 136, 0.1);
+            padding: 20px; border-radius: 20px; margin-top: 15px;
+            border: 1px dashed var(--neon-green);
+        }
+
+        .error-box {
+            background: rgba(255, 56, 56, 0.15); color: #ffcccc;
+            padding: 15px; border-radius: 15px; text-align: center;
+            margin-top: 20px; border: 1px solid #ff3838; font-weight: 700;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <video loop playsinline id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <h2><i class="fas fa-coins"></i> Hisoblagich</h2>
+
+        <form method="GET">
+            <div class="grid-dates">
+                <div class="form-group">
+                    <label>Boshlanish:</label>
+                    <input type="date" name="start_date" value="{{ start_date_str }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Tugash:</label>
+                    <input type="date" name="end_date" value="{{ end_date_str }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Oklad (so'm):</label>
+                <input type="number" name="oklad" value="{{ user_okladi_str }}" placeholder="4 000 000" required>
+            </div>
+
+            <div class="form-group">
+                <label>Ko'rsatkich (ball):</label>
+                <input type="number" name="korsatkich" value="{{ korsatkich_str }}" placeholder="Ballni kiriting" required>
+            </div>
+
+            <div class="btn-group">
+                <a href="/second/" class="btn-back">ORQAGA</a>
+                <button type="submit" class="btn-calculate">HISOBLASH</button>
+            </div>
+        </form>
+
+        {% if error %}
+            <div class="error-box"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+        {% endif %}
+
+        {% if result %}
+            <div class="result-box">
+                <h3 style="color: var(--neon-green); text-align: center; margin-top: 0; text-transform: uppercase; font-size: 16px;">
+                    <i class="fas fa-file-invoice-dollar"></i> Hisobot
+                </h3>
+
+                <div class="res-item">
+                    <span>Oklad ulushi ({{ result.foiz }}%):</span>
+                    <b>{{ result.asos|floatformat:0 }} so'm</b>
+                </div>
+
+                <div class="res-item">
+                    <span>Ish kunlari ({{ result.kunlar }} kun):</span>
+                    <b>{{ result.kunlik_haq|floatformat:0 }} so'm</b>
+                </div>
+
+                <div class="total-pay">
+                    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">Jami to'lov miqdori:</span><br>
+                    <span style="color: var(--neon-green); font-size: 26px; font-weight: 900; text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);">
+                        {{ result.jami|floatformat:0 }} so'm
+                    </span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // PWA uchun Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        const video = document.getElementById('bg-video');
+        window.addEventListener('load', () => {
+            video.play().catch(() => {});
+        });
+
+        // Haptic feedback
+        document.querySelector('.btn-calculate').addEventListener('click', () => {
+            if ('vibrate' in navigator) navigator.vibrate(20);
+        });
+    </script>
+</body>
+</html>

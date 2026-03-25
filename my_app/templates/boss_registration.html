@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#00f2ff">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Boshliqlar Registratsiyasi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --neon: #00f2ff;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 0;
+            color: white;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        /* Dinamik Fon Video */
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%); object-fit: cover;
+            filter: brightness(0.25) contrast(1.2);
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.8));
+            z-index: -1;
+        }
+
+        /* Registratsiya Box (Glassmorphism) */
+        .reg-box {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 40px 30px;
+            border-radius: 30px;
+            width: 92%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            margin: 20px 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--neon);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            font-size: 20px;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        /* Input va Form elementlari */
+        input, select {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 10px 0;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            color: #000;
+            font-size: 16px; /* iOS zoom oldini olish uchun */
+            font-weight: 600;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--neon);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        label {
+            font-size: 10px;
+            color: var(--neon);
+            margin-left: 10px;
+            display: block;
+            margin-top: 5px;
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            margin: 25px 0 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--neon), #0072ff);
+            border: none;
+            border-radius: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 30px;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.4s;
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.2);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.4);
+        }
+
+        button:active { transform: scale(0.96); }
+
+        /* PWA Standalone Safe Area */
+        @media screen and (display-mode: standalone) {
+            .reg-box { margin-top: env(safe-area-inset-top, 40px); }
+        }
+
+        @media (max-width: 480px) {
+            .reg-box { padding: 30px 20px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+    <video autoplay loop playsinline muted id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="reg-box">
+        <h2><i class="fas fa-user-shield"></i> Boshliq Ro'yxati</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="grid-2">
+                <input type="text" name="f_name" placeholder="Ism" required>
+                <input type="text" name="l_name" placeholder="Familiya" required>
+            </div>
+
+            <input type="text" name="u_login" placeholder="Login yarating" required>
+            <input type="password" name="u_pass" placeholder="Maxfiy parol" required>
+            <input type="tel" name="phone" placeholder="Telefon (998...)" required>
+
+            <div class="grid-2">
+                <div>
+                    <label>Biriktirilgan Otryad</label>
+                    <select name="otryad">
+                        <option value="">Tanlang...</option>
+                        {% for o in otryadlar %}
+                            <option value="{{ o.id }}">{{ o.nomi }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Biriktirilgan Guruh</label>
+                    <select name="guruh">
+                        <option value="">Tanlang...</option>
+                        {% for g in guruhlar %}
+                            <option value="{{ g.id }}">{{ g.nomi }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-title">Turar joy manzili</div>
+
+            <div class="grid-2">
+                <input type="text" name="viloyat" placeholder="Viloyat">
+                <input type="text" name="tuman" placeholder="Tuman">
+            </div>
+            <input type="text" name="mahalla" placeholder="Mahalla / MFY">
+            <div class="grid-2" style="grid-template-columns: 2fr 1fr;">
+                <input type="text" name="kocha" placeholder="Ko'cha nomi">
+                <input type="text" name="uy" placeholder="Uy №">
+            </div>
+
+            <button type="submit">RO'YXATDAN O'TKAZISH</button>
+        </form>
+    </div>
+
+    <script>
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{% static 'sw.js' %}")
+                .then(reg => console.log('Registratsiya SW faol'))
+                .catch(err => console.log('SW xato:', err));
+            });
+        }
+
+        // Kichik vizual effekt: Inputga yozganda neon nur taratish
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                if ('vibrate' in navigator) navigator.vibrate(5);
+            });
+        });
+    </script>
+</body>
+</html>

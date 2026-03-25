@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <meta name="theme-color" content="#050505">
+
+    <title>Nazorat Paneli | TemirYo'l</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --green: #00ff88;
+            --danger: #ff4747;
+            --glass: rgba(15, 20, 25, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #050505;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg-dark);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 120px;
+        }
+
+        #bg-video {
+            position: fixed; top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.12) contrast(1.1);
+        }
+        .overlay { position: fixed; inset: 0; background: radial-gradient(circle, transparent, #000); z-index: -1; }
+
+        .header {
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; align-items: center; padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border); gap: 15px;
+        }
+        .back-btn { color: #fff; text-decoration: none; font-size: 20px; width: 40px; }
+
+        .main-container { padding: 20px; max-width: 500px; margin: 0 auto; }
+
+        .summary-card {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 25px; padding: 20px; margin-bottom: 25px;
+            text-align: center; border-left: 5px solid var(--accent);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .vagon-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px; padding: 22px; margin-bottom: 15px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .status-success { border-color: var(--green) !important; background: rgba(0, 255, 136, 0.05); box-shadow: 0 0 15px rgba(0, 255, 136, 0.1); }
+        .status-error { border-color: var(--danger) !important; background: rgba(255, 71, 71, 0.05); box-shadow: 0 0 15px rgba(255, 71, 71, 0.1); }
+
+        .vagon-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .vagon-num { font-family: 'Orbitron'; font-size: 24px; color: var(--accent); letter-spacing: 1px; }
+
+        .action-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .btn-action {
+            padding: 15px; border-radius: 18px; border: none; font-family: 'Orbitron';
+            font-weight: 700; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: 0.3s; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .btn-check { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid rgba(0, 255, 136, 0.2); }
+        .btn-problem { background: rgba(255, 71, 71, 0.1); color: var(--danger); border: 1px solid rgba(255, 71, 71, 0.2); }
+
+        .btn-action:active { transform: scale(0.94); }
+        .active-ok { background: var(--green) !important; color: #000 !important; }
+        .active-error { background: var(--danger) !important; color: #fff !important; }
+
+        /* Submit Bar */
+        .submit-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(0, 0, 0, 0.9); padding: 20px;
+            border-top: 1px solid var(--glass-border); backdrop-filter: blur(20px);
+            z-index: 1500; display: flex; justify-content: center;
+        }
+        .btn-send {
+            width: 100%; max-width: 450px; background: var(--accent); color: #000;
+            border: none; padding: 20px; border-radius: 20px; font-family: 'Orbitron';
+            font-weight: 800; font-size: 15px; cursor: pointer;
+            box-shadow: 0 0 25px rgba(0, 242, 255, 0.3); transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        /* Modal Customization */
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px;
+        }
+        .modal-content {
+            background: #0d1117; border: 1px solid var(--accent); border-radius: 30px;
+            padding: 30px; width: 100%; max-width: 400px; text-align: center;
+        }
+        textarea {
+            width: 100%; background: #050505; border: 1px solid #333;
+            border-radius: 15px; padding: 15px; color: #fff; height: 100px;
+            margin: 15px 0; outline: none; font-family: 'Rajdhani'; font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <video autoplay loop playsinline muted id="bg-video">
+        <source src="{% static 'videos/train_motion.mp4' %}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="header">
+        <a href="/second/" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <div style="font-family: 'Orbitron'; font-weight: 700; letter-spacing: 2px; font-size: 14px;">
+            VAGON <span style="color: var(--accent);">NAZORATI</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="summary-card">
+            <div style="font-size: 10px; color: var(--accent); letter-spacing: 3px; font-family: 'Orbitron'; margin-bottom: 5px;">POYEZD № {{ active_task.train_number }}</div>
+            <div style="font-family: 'Orbitron'; font-size: 22px; font-weight: 700;">JAMI: {{ wagons|length }} TA VAGON</div>
+        </div>
+
+        <form id="vagonForm" action="{% url 'save_vagon_status' %}" method="POST">
+            {% csrf_token %}
+            <div class="vagon-list">
+                {% for wagon in wagons %}
+                <div class="vagon-card" id="card-{{ wagon.id }}">
+                    <div class="vagon-header">
+                        <div>
+                            <div class="vagon-num">№ {{ wagon.vagon_number }}</div>
+                            <div style="font-size: 10px; color: #666; font-family: 'Orbitron'; font-weight: 800;">ID: {{ wagon.id }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; color: var(--accent); font-weight: 800; text-transform: uppercase;">{{ wagon.vagon_type }}</span>
+                        </div>
+                    </div>
+
+                    <div class="action-group">
+                        <button type="button" class="btn-action btn-check" id="ok-{{ wagon.id }}" onclick="markSuccess('{{ wagon.id }}')">
+                            <i class="fas fa-check-circle"></i> SOZ
+                        </button>
+                        <button type="button" class="btn-action btn-problem" id="prob-{{ wagon.id }}" onclick="openProblemModal('{{ wagon.id }}')">
+                            <i class="fas fa-tools"></i> NOSOZ
+                        </button>
+                    </div>
+
+                    <input type="hidden" name="vagon_{{ wagon.id }}_status" id="status-{{ wagon.id }}" value="pending">
+                    <input type="hidden" name="vagon_{{ wagon.id }}_comment" id="comment-{{ wagon.id }}" value="">
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    <div class="submit-bar">
+        <button type="button" class="btn-send" onclick="askConfirmation()">HISOBOTNI YUBORISH</button>
+    </div>
+
+    <div class="modal" id="problemModal">
+        <div class="modal-content">
+            <h3 style="font-family: 'Orbitron'; color: var(--danger); font-size: 16px;">NOSOZLIK TAVSIFI</h3>
+            <textarea id="modalTextarea" placeholder="Muammoni qisqacha yozing..."></textarea>
+            <div class="action-group">
+                <button type="button" class="btn-action" style="background: #222; color: #fff;" onclick="closeModal('problemModal')">YOPISH</button>
+                <button type="button" class="btn-action active-error" onclick="saveProblem()">SAQLASH</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWagonId = null;
+
+        function markSuccess(id) {
+            if ('vibrate' in navigator) navigator.vibrate(25);
+            const card = document.getElementById('card-' + id);
+            card.className = 'vagon-card status-success';
+
+            document.getElementById('status-' + id).value = 'ok';
+            document.getElementById('comment-' + id).value = 'Hammasi soz';
+
+            document.getElementById('ok-' + id).classList.add('active-ok');
+            document.getElementById('prob-' + id).classList.remove('active-error');
+        }
+
+        function openProblemModal(id) {
+            if ('vibrate' in navigator) navigator.vibrate(40);
+            currentWagonId = id;
+            document.getElementById('problemModal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function saveProblem() {
+            const text = document.getElementById('modalTextarea').value;
+            if(!text.trim()) {
+                Swal.fire({ title: 'Xato', text: 'Iltimos, izoh yozing!', icon: 'error', background: '#0d1117', color: '#fff' });
+                return;
+            }
+
+            const card = document.getElementById('card-' + currentWagonId);
+            card.className = 'vagon-card status-error';
+
+            document.getElementById('status-' + currentWagonId).value = 'problem';
+            document.getElementById('comment-' + currentWagonId).value = text;
+
+            document.getElementById('prob-' + currentWagonId).classList.add('active-error');
+            document.getElementById('ok-' + currentWagonId).classList.remove('active-ok');
+
+            closeModal('problemModal');
+            document.getElementById('modalTextarea').value = "";
+        }
+
+        function askConfirmation() {
+            const pending = document.querySelectorAll('input[id^="status-"][value="pending"]');
+
+            if(pending.length > 0) {
+                Swal.fire({
+                    title: 'DIQQAT!',
+                    text: `Siz hali ${pending.length} ta vagonni tekshirmadingiz. Iltimos, barchasini belgilang.`,
+                    icon: 'warning',
+                    background: '#0d1117',
+                    color: '#fff',
+                    confirmButtonColor: '#00f2ff'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'YUBORISH',
+                text: "Hisobotni dispetcherga yuborasizmi?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#00ff88',
+                cancelButtonColor: '#333',
+                confirmButtonText: 'HA, YUBORISH',
+                cancelButtonText: 'YO\'Q',
+                background: '#0d1117',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('vagonForm').submit();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

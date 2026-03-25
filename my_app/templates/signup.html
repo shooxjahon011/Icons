@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <meta name="theme-color" content="#050505">
+
+    <title>Ro'yxatdan o'tish | TemirYo'l</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --glass: rgba(0, 0, 0, 0.75);
+            --border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0; min-height: 100vh;
+            font-family: 'Rajdhani', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            background: #000; color: white; overflow-x: hidden;
+        }
+
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%); object-fit: cover;
+            filter: brightness(0.2) contrast(1.2);
+        }
+        .overlay { position: fixed; inset: 0; background: radial-gradient(circle, transparent, #000); z-index: -1; }
+
+        .container {
+            position: relative; z-index: 2; background: var(--glass);
+            padding: 35px 25px; border-radius: 40px; width: 95%; max-width: 420px;
+            border: 1px solid var(--border); backdrop-filter: blur(25px);
+            text-align: center; margin: 40px 0;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.1);
+            animation: containerEntry 0.6s ease-out;
+        }
+
+        @keyframes containerEntry { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 {
+            font-family: 'Orbitron'; font-weight: 700; color: #fff;
+            text-transform: uppercase; letter-spacing: 2px; font-size: 18px;
+            margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .input-wrapper { position: relative; margin-bottom: 12px; text-align: left; }
+        .input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.3); font-size: 14px; }
+
+        input, select {
+            width: 100%; padding: 14px 15px 14px 45px; border-radius: 15px;
+            border: 1px solid var(--border); background: var(--input-bg);
+            color: #fff; font-size: 15px; font-weight: 600; outline: none;
+            font-family: 'Rajdhani'; transition: 0.3s;
+        }
+        input:focus, select:focus { border-color: var(--accent); background: rgba(0, 242, 255, 0.05); }
+
+        select option { background: #111; color: #fff; }
+
+        label { display: block; text-align: left; font-size: 10px; color: var(--accent); margin: 15px 0 5px 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+
+        .oklad-info {
+            background: rgba(0, 242, 255, 0.05); padding: 20px;
+            border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 20px; margin: 20px 0;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.05);
+        }
+
+        #res { font-family: 'Orbitron'; color: var(--accent); font-weight: 700; font-size: 18px; text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
+
+        .btn {
+            width: 100%; padding: 18px; border-radius: 18px; border: none;
+            background: var(--accent); color: #000; font-family: 'Orbitron';
+            font-weight: 800; cursor: pointer; text-transform: uppercase;
+            transition: 0.3s; letter-spacing: 2px; font-size: 14px;
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.3);
+        }
+        .btn:active { transform: scale(0.96); }
+
+        .error-msg { background: rgba(255, 71, 71, 0.1); color: #ff4747; padding: 12px; border-radius: 15px; margin-bottom: 15px; font-size: 13px; border: 1px solid rgba(255, 71, 71, 0.3); font-weight: 600; }
+
+        .login-link { margin-top: 25px; font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 600; }
+        .login-link a { color: var(--accent); text-decoration: none; font-weight: 800; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <video loop playsinline muted id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <h2><i class="fas fa-id-card-alt"></i> REGISTRATSIYA</h2>
+
+        {% if error %}
+            <div class="error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input type="text" name="full_name" placeholder="Ism-familiyangiz" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-at"></i>
+                <input type="text" name="u_name" placeholder="Login yarating" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="p_val" placeholder="Parol yarating" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-hashtag"></i>
+                <input type="text" name="t_raqam" placeholder="Tabel raqamingiz" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-phone"></i>
+                <input type="text" name="tel_val" placeholder="Telefon (+998...)" required>
+            </div>
+
+            <label>Otryad:</label>
+            <div class="input-wrapper" style="margin-bottom: 0;">
+                <i class="fas fa-sitemap"></i>
+                <select id="otryad_select" name="otryad_id" onchange="updateGroups()" required>
+                    <option value="" disabled selected>Otryadni tanlang</option>
+                    {% for o in otryadlar %}
+                        <option value="{{ o.id }}">{{ o.nomi }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <label>Guruh:</label>
+            <div class="input-wrapper" style="margin-bottom: 0;">
+                <i class="fas fa-users"></i>
+                <select id="guruh_select" name="guruh_id" disabled required>
+                    <option value="" disabled selected>Avval otryadni tanlang</option>
+                </select>
+            </div>
+
+            <label>Ishchi razryadi:</label>
+            <div class="input-wrapper">
+                <i class="fas fa-star"></i>
+                <input type="text" id="razryad" name="razryad" placeholder="Masalan: 5/3" oninput="calc()" required>
+            </div>
+
+            <div class="oklad-info">
+                <span style="font-size: 10px; opacity: 0.6; font-weight: 800; letter-spacing: 1px;">STAVKA:</span>
+                <span id="res">0 UZS</span>
+            </div>
+
+            <button type="submit" class="btn">HISOBNI TASDIQLASH</button>
+        </form>
+
+        <div class="login-link">
+            Profilingiz bormi? <a href="/login/">KIRISH</a>
+        </div>
+    </div>
+
+    <script>
+        const guruhlarData = {{ guruhlar_json|safe }};
+
+        function updateGroups() {
+            const otryadId = document.getElementById('otryad_select').value;
+            const guruhSelect = document.getElementById('guruh_select');
+            guruhSelect.innerHTML = '<option value="" disabled selected>Guruhni tanlang</option>';
+
+            if (otryadId && guruhlarData[otryadId]) {
+                guruhSelect.disabled = false;
+                guruhlarData[otryadId].forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = g.nomi;
+                    guruhSelect.appendChild(opt);
+                });
+            } else {
+                guruhSelect.disabled = true;
+            }
+        }
+
+        function calc() {
+            const val = document.getElementById('razryad').value;
+            const res = document.getElementById('res');
+            // Siz kiritgan narxlar mantiqi
+            const prices = {"5/3": 5336929, "5/2": 4800000, "4/3": 4100000};
+            if (prices[val]) {
+                res.innerText = prices[val].toLocaleString('uz-UZ') + " UZS";
+            } else {
+                res.innerText = "0 UZS";
+            }
+        }
+
+        // Avtomatik video nazorati
+        const video = document.getElementById('bg-video');
+        window.addEventListener('load', () => {
+            video.play().catch(() => {});
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#050505">
+
+    <title>Monitoring Zanjiri | {{ display_name }}</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --accent-cyan: #00f2ff;
+            --glass: rgba(15, 20, 25, 0.7);
+            --glass-border: rgba(0, 242, 255, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: white; font-family: 'Rajdhani', sans-serif; min-height: 100vh;
+        }
+
+        .overlay-main {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.95) 100%);
+            z-index: -1;
+        }
+
+        .container { padding: 40px 15px; max-width: 600px; margin: 0 auto; }
+
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 10px; color: #fff;
+            text-decoration: none; background: rgba(255,255,255,0.05);
+            padding: 12px 20px; border-radius: 15px; margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1); font-weight: 700;
+            font-size: 13px; transition: 0.3s;
+        }
+        .btn-back:hover { background: var(--accent-cyan); color: #000; }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif; font-size: 22px; text-align: center;
+            margin-bottom: 40px; letter-spacing: 3px; text-transform: uppercase;
+            color: #fff; text-shadow: 0 0 15px var(--accent-cyan);
+        }
+
+        /* Ishchi kartasi */
+        .worker-card {
+            background: var(--glass); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); padding: 22px; border-radius: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; position: relative; overflow: hidden;
+        }
+
+        .worker-card::before {
+            content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 5px;
+            background: var(--accent-cyan); opacity: 0.5;
+        }
+
+        .worker-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.15);
+        }
+
+        .worker-info strong { font-size: 19px; display: block; letter-spacing: 0.5px; }
+        .worker-info span { font-size: 11px; color: var(--accent-cyan); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+
+        .send-icon { font-size: 20px; color: var(--accent-cyan); opacity: 0.6; transition: 0.3s; }
+        .worker-card:hover .send-icon { opacity: 1; transform: translateX(5px); }
+
+        /* Modal */
+        .modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.95); z-index: 1000;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background: #0a0c0f; border: 1px solid var(--accent-cyan);
+            width: 90%; max-width: 420px; margin: 80px auto; padding: 35px 25px;
+            border-radius: 35px; box-shadow: 0 0 60px rgba(0, 242, 255, 0.2);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            color: var(--accent-cyan); font-family: 'Orbitron'; font-size: 16px;
+            text-align: center; margin-bottom: 25px; letter-spacing: 2px;
+        }
+
+        .info-panel {
+            background: rgba(255,255,255,0.03); border-radius: 20px;
+            padding: 15px; text-align: center; margin-bottom: 25px;
+            border: 1px dashed rgba(0, 242, 255, 0.3);
+        }
+
+        label {
+            font-size: 10px; color: var(--accent-cyan); font-weight: 800;
+            text-transform: uppercase; margin-bottom: 8px; display: block;
+            padding-left: 10px;
+        }
+
+        select {
+            width: 100%; padding: 15px; border-radius: 15px;
+            background: #15181c; color: white; border: 1px solid rgba(255,255,255,0.1);
+            outline: none; font-family: 'Rajdhani'; font-size: 16px; font-weight: 600;
+            margin-bottom: 20px; appearance: none;
+        }
+
+        select:focus { border-color: var(--accent-cyan); }
+
+        .btn-submit {
+            width: 100%; padding: 18px; border-radius: 18px;
+            background: linear-gradient(135deg, var(--accent-cyan), #0072ff);
+            color: white; font-weight: 900; border: none; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .btn-cancel {
+            width: 100%; background: transparent; border: none;
+            color: #666; margin-top: 15px; cursor: pointer;
+            font-weight: 700; font-size: 13px; text-transform: uppercase;
+        }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 60px 20px; opacity: 0.4; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay-main"></div>
+
+    <div class="container">
+        <a href="/bosspage/" class="btn-back"><i class="fas fa-arrow-left"></i> ORQAGA</a>
+
+        <h1>Monitoring Zanjiri</h1>
+
+        <div class="worker-list">
+            {% for train in trains %}
+            <div class="worker-card" onclick="openTransferModal('{{ train.id }}', '{{ train.assigned_worker.full_name }}', '{{ train.train_number }}')">
+                <div style="display: flex; align-items: center; gap: 18px;">
+                    <div style="background: rgba(0, 242, 255, 0.1); width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-train" style="font-size: 24px; color: var(--accent-cyan);"></i>
+                    </div>
+                    <div class="worker-info">
+                        <strong>{{ train.assigned_worker.full_name }}</strong>
+                        <span>POYEZD № {{ train.train_number }}</span>
+                    </div>
+                </div>
+                <div class="send-icon"><i class="fas fa-paper-plane"></i></div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-satellite-dish fa-3x" style="margin-bottom: 15px;"></i>
+                <p>Hozircha biriktirilgan poyezdlar aniqlanmadi.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="transferModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-exchange-alt"></i> YO'NALTIRISH</h2>
+
+            <div class="info-panel" id="transferInfo">
+                </div>
+
+            <form id="transferForm" method="POST">
+                {% csrf_token %}
+                <label>Qaysi Otryadga?</label>
+                <select name="otryad" id="otryad_select" onchange="loadGuruhlar(this.value)" required>
+                    <option value="">-- Tanlang --</option>
+                    {% for o in otryadlar %}
+                    <option value="{{ o.id }}">{{ o.nomi }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Qaysi Guruhga?</label>
+                <select name="guruh" id="guruh_select" required disabled>
+                    <option value="">Otryadni tanlang</option>
+                </select>
+
+                <button type="submit" class="btn-submit">YUBORISHNI TASDIQLASH</button>
+                <button type="button" onclick="closeModal()" class="btn-cancel">AMALIYOTNI BEKOR QILISH</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const MY_GROUP_ID = "{{ user_guruh_id }}";
+
+        function openTransferModal(trainId, name, trainNum) {
+            if ('vibrate' in navigator) navigator.vibrate(25);
+            document.getElementById('transferForm').action = "/transfer-train-api/" + trainId + "/";
+            document.getElementById('transferInfo').innerHTML = `
+                <span style="color: #888; font-size: 12px;">Tanlangan poyezd:</span><br>
+                <b style="font-size: 20px; font-family: 'Orbitron'; color: var(--accent-cyan);">№${trainNum}</b><br>
+                <span style="color: #fff; font-size: 14px;">Mas'ul: ${name}</span>
+            `;
+            document.getElementById('transferModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('transferModal').style.display = 'none';
+        }
+
+        function loadGuruhlar(otryadId) {
+            const select = document.getElementById('guruh_select');
+            if(!otryadId) {
+                select.disabled = true;
+                select.innerHTML = '<option value="">Otryadni tanlang</option>';
+                return;
+            }
+
+            // Yuklanish holati
+            select.innerHTML = '<option value="">Yuklanmoqda...</option>';
+
+            fetch(`/ajax/get-guruhlar/?otryad_id=${otryadId}`)
+                .then(res => res.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">-- Guruhni tanlang --</option>';
+                    let hasGroups = false;
+                    data.forEach(g => {
+                        if (String(g.id) !== String(MY_GROUP_ID)) {
+                            select.innerHTML += `<option value="${g.id}">${g.nomi}</option>`;
+                            hasGroups = true;
+                        }
+                    });
+                    select.disabled = !hasGroups;
+                    if(!hasGroups) select.innerHTML = '<option value="">Boshqa guruh yo\'q</option>';
+                })
+                .catch(() => {
+                    select.innerHTML = '<option value="">Xatolik yuz berdi</option>';
+                });
+        }
+
+        // Modal tashqarisini bosganda yopish
+        window.onclick = function(event) {
+            let modal = document.getElementById('transferModal');
+            if (event.target == modal) closeModal();
+        }
+    </script>
+</body>
+</html>

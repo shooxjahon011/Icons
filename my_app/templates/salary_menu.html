@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <meta name="theme-color" content="#050505">
+
+    <title>Oylik Menyusi | TemirYo'l</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --manual: #ff9d00;
+            --glass: rgba(0, 0, 0, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0; height: 100vh;
+            font-family: 'Rajdhani', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            background: #000; color: white; overflow: hidden;
+        }
+
+        /* VIDEO FON */
+        #bg-video {
+            position: fixed; top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.15) contrast(1.2);
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, transparent, #000);
+            z-index: -1;
+        }
+
+        .menu-box {
+            background: var(--glass);
+            padding: 45px 30px;
+            border-radius: 40px;
+            text-align: center;
+            width: 90%; max-width: 380px;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.1);
+            position: relative; z-index: 1;
+            animation: boxScale 0.5s ease-out;
+        }
+
+        @keyframes boxScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .icon-box {
+            width: 80px; height: 80px; background: rgba(0, 242, 255, 0.1);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; border: 1px solid var(--accent);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        h1 {
+            font-family: 'Orbitron'; font-size: 18px; margin-bottom: 8px;
+            letter-spacing: 2px; font-weight: 700; color: #fff;
+            text-transform: uppercase;
+        }
+
+        .razryad-tag {
+            display: inline-block;
+            padding: 6px 18px;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            color: var(--accent);
+            font-size: 13px;
+            margin-bottom: 35px;
+            font-weight: 700;
+            font-family: 'Orbitron';
+        }
+
+        .nav-link {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: 20px; margin: 15px 0;
+            background: var(--accent); color: #000;
+            text-decoration: none; border-radius: 20px;
+            font-weight: 800; transition: 0.3s;
+            text-transform: uppercase; font-family: 'Orbitron';
+            font-size: 13px; letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .nav-link:active { transform: scale(0.96); }
+
+        .nav-manual {
+            background: transparent;
+            border: 1px solid var(--manual);
+            color: var(--manual);
+            box-shadow: none;
+        }
+
+        .nav-manual:hover {
+            background: rgba(255, 157, 0, 0.1);
+            box-shadow: 0 0 15px rgba(255, 157, 0, 0.2);
+        }
+
+        .back-link {
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 30px;
+            transition: 0.3s;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .back-link:hover { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <video loop playsinline id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="menu-box">
+        <div class="icon-box">
+            <i class="fas fa-calculator-alt" style="font-size: 32px; color: var(--accent);"></i>
+        </div>
+        <h1>Ish haqini hisoblash</h1>
+        <div class="razryad-tag">RAZRYAD: {{ user.razryad }}</div>
+
+        <a href="{{ auto_url }}" class="nav-link">
+            <i class="fas fa-microchip"></i> Avtomatik tizim
+        </a>
+
+        <a href="/Kankulyator/" class="nav-link nav-manual">
+            <i class="fas fa-keyboard"></i> Qo'lda hisoblash
+        </a>
+
+        <a href="/second/" class="back-link">← ORQAGA</a>
+    </div>
+
+    <script>
+        const video = document.getElementById('bg-video');
+        window.addEventListener('load', () => {
+            video.muted = true;
+            video.play().catch(e => console.log("Video autoplay blocked"));
+        });
+
+        // Foydalanuvchi bir marta ekranga bossa, videoni ovozini ochish yoki qayta o'ynatish
+        document.body.addEventListener('click', () => {
+            video.play();
+        }, { once: true });
+    </script>
+</body>
+</html>

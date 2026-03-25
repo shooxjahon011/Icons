@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="icon" href="{% static 'icons/image.png' %}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{% static 'icons/image.png' %}">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#050505">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Kalkulyator | TemirYo'l</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --glass-bg: rgba(0, 0, 0, 0.7);
+            --border-color: rgba(0, 242, 255, 0.2);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #000; color: white;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #bg-video {
+            position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            z-index: -2; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.3) contrast(1.1);
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.8));
+            z-index: -1;
+        }
+
+        /* PWA Safe Area */
+        @media screen and (display-mode: standalone) {
+            .container { padding-top: env(safe-area-inset-top, 40px) !important; }
+        }
+
+        .container {
+            max-width: 480px; margin: 20px auto; padding: 30px 25px;
+            background: var(--glass-bg); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 35px; border: 1px solid var(--border-color);
+            position: relative; z-index: 1;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center; color: var(--neon-cyan);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 30px; font-size: 20px;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        label {
+            display: block; font-size: 10px; color: var(--neon-cyan);
+            margin-bottom: 8px; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding-left: 5px;
+        }
+
+        input {
+            width: 100%; padding: 14px 18px; border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            color: #000; font-size: 16px; font-weight: 700;
+            outline: none; box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+            transform: scale(1.01);
+        }
+
+        .btn-calc {
+            width: 100%; padding: 18px; border: none; border-radius: 15px;
+            background: linear-gradient(135deg, var(--neon-cyan), #0072ff);
+            color: white; font-weight: 900; font-size: 16px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.4s; margin-top: 15px;
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .btn-calc:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0, 242, 255, 0.4); }
+        .btn-calc:active { transform: scale(0.96); }
+
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            text-decoration: none; color: rgba(255,255,255,0.6);
+            font-size: 13px; font-weight: 700; margin-bottom: 25px;
+            transition: 0.3s; text-transform: uppercase;
+        }
+        .back-btn:hover { color: var(--neon-cyan); }
+
+        /* Natija oynasi */
+        .result-box {
+            background: rgba(0, 242, 255, 0.1); border: 1px solid var(--neon-cyan);
+            padding: 25px; border-radius: 25px; margin-top: 25px;
+            text-align: center; backdrop-filter: blur(10px);
+            animation: pulseIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pulseIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .result-label { color: #888; font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+        .result-value {
+            color: var(--neon-cyan); font-size: 28px; font-weight: 900;
+            display: block; margin-top: 5px;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.6);
+        }
+
+        @media (max-width: 480px) {
+            .container { margin: 10px; border-radius: 25px; padding: 25px 20px; }
+            h2 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <video loop playsinline id="bg-video">
+        <source src="{{ video_url }}" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+
+    <div class="container">
+        <a href="/second/" class="back-btn"><i class="fas fa-chevron-left"></i> Orqaga qaytish</a>
+
+        <h2><i class="fas fa-calculator"></i> Hisob-kitob</h2>
+
+        <form method="GET">
+            <div class="form-group">
+                <label>Oylik oklad (so'm):</label>
+                <input type="number" name="salary" value="{{ salary }}" required placeholder="Masalan: 4000000">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Norma soat:</label>
+                    <input type="number" name="norma_soat" value="{{ norma_soat }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Ishlangan soat:</label>
+                    <input type="number" name="ishlangan_soat" value="{{ ishlangan_soat }}" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label>Tungi soat:</label>
+                    <input type="number" name="tungi_soat" value="{{ tungi_soat }}">
+                </div>
+                <div class="form-group">
+                    <label>Bayram soati:</label>
+                    <input type="number" name="bayram_soati" value="{{ bayram_soati }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-calc">HISOBLASH <i class="fas fa-bolt"></i></button>
+        </form>
+
+        {% if error %}
+            <div style="color:#ff3838; text-align:center; margin-top:20px; font-weight:700; font-size:13px; background: rgba(255,56,56,0.1); padding:10px; border-radius:10px;">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+
+        {% if netto %}
+            <div class="result-box">
+                <span class="result-label">To'lanadigan aniq summa (Netto):</span>
+                <span class="result-value">
+                    {{ netto|floatformat:0 }} so'm
+                </span>
+                <p style="font-size: 10px; color: #555; margin-top: 10px; font-weight: 700;">*Barcha soliqlar chegirilgan</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        // Video boshqaruvi
+        const video = document.getElementById('bg-video');
+        window.addEventListener('load', () => {
+            video.muted = true;
+            video.play().catch(() => {});
+        });
+
+        // Click bo'lganda ovozni ochish (ixtiyoriy)
+        document.body.addEventListener('click', () => {
+            if (video.paused) video.play();
+        }, { once: true });
+
+        // Haptic feedback (tebranish)
+        document.querySelector('.btn-calc').addEventListener('click', () => {
+            if ('vibrate' in navigator) navigator.vibrate(20);
+        });
+    </script>
+</body>
+</html>
